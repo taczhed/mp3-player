@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pl-PL">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload files</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        }
+
+        html {
+            width: 100%;
+            height: 100vh;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        div.drop-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background-color: darkslategray;
+            color: white;
+            text-align: center;
+        }
+
+        div.list {
+            position: absolute;
+            top: 100px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 100px);
+            background-color: #eeeeee;
+            color: black;
+        }
+
+        h1 {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .item {
+            width: 100%;
+            border-bottom: 1px solid grey;
+        }
+
+        img {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            padding: 10px;
+        }
+
+        .item-text {
+            display: inline-block;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="drop-area">
+        <h1>Przeciągnij pliki tutaj!</h1>
+    </div>
+    <div class="list">
+
+    </div>
+
+    <script>
+
+        const h = document.querySelector("h1")
+        const list = document.querySelector(".list")
+
+        document.querySelector("html").ondragover = function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            h.innerHTML = "Upuść tutaj!"
+        }
+
+        document.querySelector("html").ondragleave = function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            h.innerHTML = "Przeciągnij pliki tutaj!"
+        }
+
+        document.querySelector(".drop-area").ondragover = function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            h.innerHTML = "Upuść!"
+        }
+
+        document.querySelector(".drop-area").ondrop = function (e) {
+
+            console.log("drop na divie")
+            e.stopPropagation();
+            e.preventDefault();
+
+            var files = e.dataTransfer.files;
+            console.log(files)
+
+            let dropAccess = true
+
+            for (let file of files) {
+                if (file.type == "") {
+                    dropAccess = false
+                }
+            }
+
+            if (dropAccess == false) {
+
+                h.innerHTML = "Przeciągnij pliki a nie katalog!"
+                setTimeout(() => {
+                    h.innerHTML = "Przeciągnij pliki tutaj!"
+                }, 2000);
+
+            } else {
+
+                h.innerHTML = "Upload..."
+                setTimeout(() => {
+                    h.innerHTML = "Przeciągnij pliki tutaj!"
+                }, 2000);
+
+                var fd = new FormData()
+
+                for (let file of files) {
+                    fd.append("file", file)
+                }
+
+                const body = fd
+
+                const headers = { "Contet-Type": "application/json" }
+
+                fetch("/upload", { method: "post", body })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data)
+
+                        for (let name of data.files) {
+                            let item = document.createElement("div")
+                            let itemPhoto = document.createElement("img")
+                            let itemText = document.createElement("div")
+                            itemText.classList.add("item-text")
+                            itemText.innerHTML = name
+                            itemPhoto.setAttribute("src", "/uploadIcon")
+                            item.appendChild(itemPhoto)
+                            item.appendChild(itemText)
+                            item.classList.add("item")
+                            list.appendChild(item)
+                        }
+
+                    })
+            }
+
+        }
+    </script>
+
+</body>
+
+</html>
